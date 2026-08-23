@@ -11,9 +11,9 @@ if str(REPOSITORY_ROOT) not in sys.path:
     sys.path.insert(0, str(REPOSITORY_ROOT))
 
 from custom_practice.runner import run_cli  # noqa: E402
-from solution import solve  # noqa: E402
+from solution import process_datacenter_commands  # noqa: E402
 from test_cases import TEST_CASES  # noqa: E402
 
 
 if __name__ == "__main__":
-    raise SystemExit(run_cli(solve, TEST_CASES))
+    raise SystemExit(run_cli(process_datacenter_commands, TEST_CASES))

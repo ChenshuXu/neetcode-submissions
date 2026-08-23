@@ -4,6 +4,27 @@ This folder provides a small, standard-library-only runner for interview questio
 LeetCode. It is designed for VS Code: fill in `solution.py`, run `run_tests.py`, and inspect every
 visible input, expected value, actual value, and PASS/FAIL result.
 
+## Folder hierarchy
+
+Company-specific exercises live under one company folder. A follow-up that extends one base problem
+lives under that problem's `follow_ups/` folder; a related problem with different semantics lives under
+`variants/` instead.
+
+```text
+custom_practice/
+├── snowflake/
+│   ├── ordered_nary_tree_deletion/
+│   │   ├── follow_ups/
+│   │   └── variants/
+│   └── <other Snowflake problems>/
+├── stripe/
+│   └── <Stripe problems and OA map>/
+├── microsoft_screen_custom_bank/
+└── doordash_codecraft/
+```
+
+See `snowflake/README.md` and `stripe/README.md` for the complete company indexes.
+
 ## Current practice
 
 DoorDash Round 1 Code Craft (two 60-minute service/API katas):
@@ -18,36 +39,41 @@ See `doordash_codecraft/README.md` for the guided, solo, and cold-run workflows.
 Ordered n-ary tree deletion:
 
 ```bash
-python3 custom_practice/ordered_nary_tree_deletion/run_tests.py
+python3 custom_practice/snowflake/ordered_nary_tree_deletion/run_tests.py
 ```
 
 Snowflake N-ary follow-ups:
 
 ```bash
-python3 custom_practice/followup_1_multiple_deletions/run_tests.py
-python3 custom_practice/followup_2_forest_height/run_tests.py
-python3 custom_practice/followup_3_minimum_deletions_for_height/run_tests.py
-python3 custom_practice/followup_4_parent_index_forest/run_tests.py
-python3 custom_practice/variant_subtree_deletion/run_tests.py
+python3 custom_practice/snowflake/ordered_nary_tree_deletion/follow_ups/multiple_deletions/run_tests.py
+python3 custom_practice/snowflake/ordered_nary_tree_deletion/follow_ups/forest_height/run_tests.py
+python3 custom_practice/snowflake/ordered_nary_tree_deletion/follow_ups/minimum_deletions_for_height/run_tests.py
+python3 custom_practice/snowflake/ordered_nary_tree_deletion/follow_ups/parent_index_forest/run_tests.py
+```
+
+Separate N-ary deletion variant:
+
+```bash
+python3 custom_practice/snowflake/ordered_nary_tree_deletion/variants/subtree_deletion/run_tests.py
 ```
 
 Report-based height-limit greedy (fresh blank attempt; preserves the completed DP version):
 
 ```bash
-python3 custom_practice/reported_height_limit_greedy/run_tests.py
+python3 custom_practice/snowflake/ordered_nary_tree_deletion/follow_ups/reported_height_limit_greedy/run_tests.py
 ```
 
 Useful options:
 
 ```bash
-python3 custom_practice/ordered_nary_tree_deletion/run_tests.py --list
-python3 custom_practice/ordered_nary_tree_deletion/run_tests.py --case middle
+python3 custom_practice/snowflake/ordered_nary_tree_deletion/run_tests.py --list
+python3 custom_practice/snowflake/ordered_nary_tree_deletion/run_tests.py --case middle
 ```
 
 Bounded event-frequency tracker:
 
 ```bash
-python3 custom_practice/bounded_event_frequency_tracker/run_tests.py
+python3 custom_practice/snowflake/bounded_event_frequency_tracker/run_tests.py
 ```
 
 This stateful Snowflake-style exercise combines rolling-window eviction with dynamic frequency
@@ -57,8 +83,8 @@ interview report exposes only a partial contract.
 Snowflake two-problem mechanics — LC362 and LC635:
 
 ```bash
-python3 custom_practice/snowflake_hit_counter/run_tests.py
-python3 custom_practice/snowflake_log_storage/run_tests.py
+python3 custom_practice/snowflake/hit_counter/run_tests.py
+python3 custom_practice/snowflake/log_storage/run_tests.py
 ```
 
 These are exact-contract speed drills for the reported Backend IC1/IC2 families. Hit Counter targets
@@ -69,7 +95,7 @@ post-run review and follow-ups.
 Transactional key-value store:
 
 ```bash
-python3 custom_practice/transactional_kv/run_tests.py
+python3 custom_practice/snowflake/transactional_kv/run_tests.py
 ```
 
 This repeated Snowflake custom family covers `get/put/delete/begin/commit/rollback`, nested commit
@@ -90,7 +116,7 @@ the contracts are practice reconstructions rather than claims about exact leaked
 Stripe Linked Merchant / Entity Clustering:
 
 ```bash
-python3 custom_practice/stripe_linked_merchant_clustering/run_tests.py
+python3 custom_practice/stripe/linked_merchant_clustering/run_tests.py
 ```
 
 This reconstructed three-day graph exercise covers expiring shared attributes, component splits and
@@ -101,7 +127,7 @@ of the original contract.
 Stripe OA 2024–2026 complete map:
 
 ```text
-custom_practice/stripe_oa_question_map/README.md
+custom_practice/stripe/oa_question_map/README.md
 ```
 
 The map covers every main and reserve family in the Stripe question bank, links the closest official
@@ -114,7 +140,7 @@ terminal is at the repository root or inside the exercise folder.
 
 ## Create another custom practice
 
-1. Copy `_template/` to a new folder directly under `custom_practice/`.
+1. Copy `_template/` to `custom_practice/<company>/<problem_name>/`.
 2. Edit the copied `solution.py` and give `solve` the desired function signature.
 3. Edit `test_cases.py`. Add each visible test as `Case(name=..., args=(...), expected=...)`.
 4. Run the copied `run_tests.py`.
