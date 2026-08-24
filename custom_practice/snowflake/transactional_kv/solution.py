@@ -5,29 +5,29 @@ class TransactionalKV:
     """In-memory key-value store with nested transactions."""
 
     def __init__(self) -> None:
-        """Initialize an empty store with no active transactions."""
+        """Create an empty committed store with no active transaction layers."""
         pass
 
     def get(self, key: str) -> Optional[int]:
-        """Return the currently visible value, or None when the key is missing."""
+        """Return the newest visible value across transaction layers, or None."""
         raise NotImplementedError("Implement get in solution.py")
 
     def put(self, key: str, value: int) -> None:
-        """Write a value in the current transaction or directly to committed state."""
+        """Write to the innermost transaction, or committed state if none exists."""
         raise NotImplementedError("Implement put in solution.py")
 
     def delete(self, key: str) -> None:
-        """Hide or remove a key in the current visible state."""
+        """Hide a key in the innermost transaction, or remove it if none exists."""
         raise NotImplementedError("Implement delete in solution.py")
 
     def begin(self) -> None:
-        """Open a new, possibly nested transaction."""
+        """Push a new empty transaction layer, which may be nested."""
         raise NotImplementedError("Implement begin in solution.py")
 
     def commit(self) -> bool:
-        """Commit the innermost transaction, returning False if none is active."""
+        """Merge the innermost layer downward; return False if none is active."""
         raise NotImplementedError("Implement commit in solution.py")
 
     def rollback(self) -> bool:
-        """Discard the innermost transaction, returning False if none is active."""
+        """Discard only the innermost layer; return False if none is active."""
         raise NotImplementedError("Implement rollback in solution.py")

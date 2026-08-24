@@ -6,9 +6,13 @@ unrelated top-level exercises.
 
 ```text
 snowflake/
+├── acl_inheritance_dag/
 ├── bounded_event_frequency_tracker/
+├── binary_search_repeated_queries/
+├── closest_bathroom_for_each_desk/
 ├── hit_counter/
 ├── log_storage/
+├── multi_rule_rate_limiter/
 ├── ordered_nary_tree_deletion/
 │   ├── solution.py, test_cases.py, run_tests.py, models.py
 │   ├── follow_ups/
@@ -19,7 +23,9 @@ snowflake/
 │   │   └── reported_height_limit_greedy/
 │   └── variants/
 │       └── subtree_deletion/
+├── parallel_schedule_limited_workers/
 ├── recent_custom_bank/
+├── timestamped_versioned_kv/
 └── transactional_kv/
 ```
 
@@ -29,7 +35,13 @@ import that model rather than duplicating the tree definition.
 Run any exercise from the repository root, for example:
 
 ```bash
+python3 custom_practice/snowflake/acl_inheritance_dag/run_tests.py
 python3 custom_practice/snowflake/ordered_nary_tree_deletion/run_tests.py
 python3 custom_practice/snowflake/ordered_nary_tree_deletion/follow_ups/multiple_deletions/run_tests.py
+python3 custom_practice/snowflake/binary_search_repeated_queries/run_tests.py
+python3 custom_practice/snowflake/closest_bathroom_for_each_desk/run_tests.py
 python3 custom_practice/snowflake/hit_counter/run_tests.py
+python3 custom_practice/snowflake/multi_rule_rate_limiter/run_tests.py
+python3 custom_practice/snowflake/parallel_schedule_limited_workers/run_tests.py
+python3 custom_practice/snowflake/timestamped_versioned_kv/run_tests.py
 ```
