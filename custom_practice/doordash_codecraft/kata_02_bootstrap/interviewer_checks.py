@@ -146,6 +146,14 @@ class HeldBackBootstrapChecks(unittest.TestCase):
         self.assertEqual((), result.recent_orders)
         self.assertEqual((), result.warnings)
 
+    def test_missing_recent_orders_is_a_normal_empty_collection(self):
+        result = build_service(
+            order_client=FakeClient(error=ClientNotFoundError("no orders"))
+        ).get_bootstrap("user-1")
+
+        self.assertEqual((), result.recent_orders)
+        self.assertEqual((), result.warnings)
+
     def test_recent_order_sequence_is_normalized_to_tuple(self):
         result = build_service(
             order_client=FakeClient(result=list(ORDERS))

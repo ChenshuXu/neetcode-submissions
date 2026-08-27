@@ -61,7 +61,11 @@ class PayoutService:
     ) -> None:
         if rate_per_active_minute < Decimal("0"):
             raise ValueError("rate_per_active_minute must be non-negative")
+
+        # Injected upstream port used to load this dasher's delivery records.
         self._delivery_client = delivery_client
+
+        # Exact Decimal dollars paid for one active delivery-minute.
         self._rate_per_active_minute = rate_per_active_minute
 
     def get_payout(self, dasher_id: str) -> PayoutResponse:

@@ -18,6 +18,10 @@ Run the visible suite with:
     python3 -m unittest -v
 
 During a cold run, do not open README.md, INTERVIEWER_PACKET.md, or
-interviewer_checks.py. Ask the interviewer for clarification and for one
-follow-up after the base suite is green.
+FOLLOW_UP_DRILLS.md, or interviewer_checks.py. Ask the interviewer for
+clarification and for one follow-up after the base suite is green.
 
+This starter is intentionally narrower than the full public interview-report
+inventory. The interviewer may add another dependency, a response
+transformation, concurrency, deadlines, retry policy, or an HTTP mapping as a
+follow-up. Do not pre-build those extensions before they are requested.

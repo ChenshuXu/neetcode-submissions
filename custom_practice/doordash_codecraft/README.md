@@ -16,7 +16,7 @@ unchanged:
     cd "/Users/Newton/Documents/job search/neetcode-submissions/custom_practice/doordash_codecraft"
     python3 new_attempt.py dasher-pay guided-dasher-01
     cd attempts/guided-dasher-01
-    python3 -m unittest -v
+    python3 run_tests.py visible
 
 The first run should discover four tests and fail because the service method
 is intentionally unimplemented. That is the correct starter state.
@@ -30,16 +30,34 @@ When it is time for the second kata:
 
 That first run should discover four tests and fail for the same reason.
 
+The optional lower-frequency Validate Cart mini-kata comes after both primary
+katas:
+
+    cd "/Users/Newton/Documents/job search/neetcode-submissions/custom_practice/doordash_codecraft"
+    python3 new_attempt.py validate-cart cold-validate-cart-01
+    cd attempts/cold-validate-cart-01
+    python3 run_tests.py
+
+That first run should discover nine tests and fail with the intentional
+`NotImplementedError`.
+
 ## What to edit
 
 - Edit only the files inside the newly created attempts folder.
 - Kata 1: edit dasher_pay.py and add tests to test_dasher_pay.py.
 - Kata 2: edit bootstrap.py and add tests to test_bootstrap.py.
-- Treat kata_01_dasher_pay and kata_02_bootstrap as immutable templates.
+- Kata 3: edit validate_cart.py and add tests to test_validate_cart.py.
+- Treat all three kata directories as immutable templates.
 - The visible tests are part of the supplied interview environment. You may
   add candidate-written tests to the existing test file.
 - The interviewer_checks.py files are intentionally excluded from normal test
   discovery. Do not read or run them until time is called.
+- Kata 1's full staged follow-up deck stays in the canonical
+  `kata_01_dasher_pay/FOLLOW_UPS.md`; open it only after the base suite is
+  green, or ask Codex to release one card.
+- The Bootstrap template also has FOLLOW_UP_DRILLS.md. It is an answer-free
+  rotation deck, but keep it closed until the base implementation is green or
+  the interviewer releases a card.
 - Do not change an existing assertion just to make a failure disappear. If you
   believe the contract is wrong, state the disagreement before changing it.
 
@@ -82,6 +100,10 @@ After time is called, run the held-back checks from inside the attempt:
 
     python3 -m unittest -v interviewer_checks.py
 
+For Dasher Pay, the equivalent explicit command is:
+
+    python3 run_tests.py held-back
+
 ## Sixty-minute operating rhythm
 
 | Time | Required outcome |
@@ -115,6 +137,9 @@ practice defaults.
 
 ## Readiness gate
 
+Kata 3 is an optional 30-minute hedge and does not replace either primary cold
+rep in this gate.
+
 Both cold katas must independently meet all of these:
 
 - runnable happy path by minute 30;
@@ -129,9 +154,14 @@ Both cold katas must independently meet all of these:
 
 ## Files
 
-- kata_01_dasher_pay: light starter, closer to a blank service exercise.
+- kata_01_dasher_pay: light starter plus a staged deck covering peak windows,
+  event timelines, cancellation variants, upstream degradation,
+  retry/idempotency, and large or late event streams.
 - kata_02_bootstrap: supplied clients and models, closer to an existing-code
-  aggregation exercise.
+  aggregation exercise; its follow-up deck covers the wider reported failure,
+  transformation, concurrency, retry, HTTP, and production discussion surface.
+- kata_03_validate_cart: lower-frequency business-rule validator with stable
+  all-error output and atomic-reservation/idempotency follow-ups.
 - new_attempt.py: creates a fresh, non-overwriting attempt and verifies the
   reviewed starter files before copying.
 - attempts: all candidate edits and run logs belong here.

@@ -15,11 +15,25 @@ ATTEMPTS_ROOT = PACK_ROOT / "attempts"
 KATAS: Dict[str, Tuple[str, Tuple[str, ...]]] = {
     "dasher-pay": (
         "kata_01_dasher_pay",
-        ("COLD_PROMPT.md", "dasher_pay.py", "test_dasher_pay.py"),
+        (
+            "COLD_PROMPT.md",
+            "dasher_pay.py",
+            "test_dasher_pay.py",
+            "run_tests.py",
+        ),
     ),
     "bootstrap": (
         "kata_02_bootstrap",
         ("COLD_PROMPT.md", "bootstrap.py", "test_bootstrap.py"),
+    ),
+    "validate-cart": (
+        "kata_03_validate_cart",
+        (
+            "COLD_PROMPT.md",
+            "validate_cart.py",
+            "test_validate_cart.py",
+            "run_tests.py",
+        ),
     ),
 }
 
@@ -27,21 +41,33 @@ KATAS: Dict[str, Tuple[str, Tuple[str, ...]]] = {
 # of silently contaminating a later cold attempt.
 EXPECTED_HASHES = {
     "kata_01_dasher_pay/COLD_PROMPT.md":
-        "05fcd81b48120ba758f8add88ef085e103d7a8f12c44532cc874e87ea5276341",
+        "e0d1d26d802c9fc46ea191079556a7850c992754abee82e71d4d8fde498ce556",
     "kata_01_dasher_pay/dasher_pay.py":
-        "73059e0dc21845d039395a40877baf85315478d3428a6e2f092233a7bf9f8202",
+        "e1afe0f4fccb88e99aa918a16438110e3faa9807407281d6a468519b19dca544",
     "kata_01_dasher_pay/test_dasher_pay.py":
         "118b6ea5d3f9b13507c0042f474df99af1a7c150141c0fbca62bf6047c9fb376",
     "kata_01_dasher_pay/interviewer_checks.py":
         "8d0488c12ac28caf361683adb1c4103d1e68dd9a47dcd35b50ff5d49469473bd",
+    "kata_01_dasher_pay/run_tests.py":
+        "8ae53f8451b14d6fe06be7a483032c9d0fb2899b4f91bf36d0e0bd0e953f7a1c",
     "kata_02_bootstrap/COLD_PROMPT.md":
-        "35c7edfc99667c4c199edb32136912bc69c96305557931bedb2849f75383c654",
+        "535dce154858fb7bcfa2982becca09357af0093025f4b48698c371281811174e",
     "kata_02_bootstrap/bootstrap.py":
-        "6a4761bc43178b89a396056bc4c1a478d17f71647f77b1e32c725addc08e24ea",
+        "eddd248bde0c05fbf6a5842a9f4fbf842d1ca9293b8c77948d236d15637ab846",
     "kata_02_bootstrap/test_bootstrap.py":
         "357215ff127cdf4e062d9adb2a4d531da6055ef313b99944bc8e8b11ba75c6ba",
     "kata_02_bootstrap/interviewer_checks.py":
-        "18509777a0c6cf7c34cb9cd9980e120108daa0593b85c63b1d0614543b171d26",
+        "ad728977b1aa04355d437b4a6c4d55f8bc432029fc929c588422f8e601cc4905",
+    "kata_03_validate_cart/COLD_PROMPT.md":
+        "bdd0ec3d40a26cf939f36c552ae8d3ded30c91b535a6a90e7d9bf4729facd0bf",
+    "kata_03_validate_cart/validate_cart.py":
+        "71197522bf4103d1396c18df59cc865f9abd3ed53bf4ff5d51976958e7d49a42",
+    "kata_03_validate_cart/test_validate_cart.py":
+        "8664d53ec671498acde18bbd808305c84ba2506590f3f5d01c1388dc2e0f7046",
+    "kata_03_validate_cart/run_tests.py":
+        "f58479d040eb78e127de4ca7928dab883504d2390a93f7590bc8ef20d0760c8e",
+    "kata_03_validate_cart/interviewer_checks.py":
+        "8845835aca1e11e4a627c944a0f935a396169e413e33fb1ee574452740e38351",
 }
 
 
@@ -110,7 +136,12 @@ def main() -> int:
 
     print(f"created: {destination}")
     print(f"next: cd {shlex.quote(str(destination))}")
-    print("then: python3 -m unittest -v")
+    if args.kata == "dasher-pay":
+        print("then: python3 run_tests.py visible")
+    elif args.kata == "validate-cart":
+        print("then: python3 run_tests.py")
+    else:
+        print("then: python3 -m unittest -v")
     return 0
 
 

@@ -80,6 +80,19 @@ This stateful Snowflake-style exercise combines rolling-window eviction with dyn
 queries. Its exact cutoff and tie behavior are explicit practice assumptions because the public
 interview report exposes only a partial contract.
 
+Snowflake Person / Cake family:
+
+```bash
+python3 custom_practice/snowflake/person_cake/run_tests.py
+python3 custom_practice/snowflake/person_cake/variants/grid_nearest_cake/run_tests.py
+python3 custom_practice/snowflake/person_cake/follow_ups/global_assignment/run_tests.py
+```
+
+Three packages for one reported family: the 1-D `{0,1,2}` minimum person/cake distance, the 2-D
+nearest-cake round, and the one-to-one assignment follow-up that breaks the nearest-first answer.
+The `{0,1,2}` encoding comes from the reports; the signatures, the missing-kind sentinel, and the
+line geometry used in the assignment follow-up are explicit practice assumptions.
+
 Snowflake two-problem mechanics — LC362 and LC635:
 
 ```bash
@@ -101,6 +114,18 @@ python3 custom_practice/snowflake/transactional_kv/run_tests.py
 This repeated Snowflake custom family covers `get/put/delete/begin/commit/rollback`, nested commit
 and rollback semantics, missing-value handling, and ten visible state-transition cases. The delivered
 solution remains an intentional cold-practice starter.
+
+Task executor OOD:
+
+```bash
+python3 custom_practice/snowflake/task_executor_ood/run_tests.py
+```
+
+This reported onsite OOD family fixes only `addTask(taskId, priority, timestamp)` / `executeTask()`
+and leaves the version semantics to the candidate. The pack freezes one contract — latest add wins per
+task ID, ties by earlier timestamp then task ID, cancel returns whether the task was pending — and
+tests it against stale heap entries, re-add-lower-priority, and cancel-then-re-add across 15 visible
+cases. The solution is a worked lazy-deletion heap.
 
 Microsoft screen custom question bank:
 

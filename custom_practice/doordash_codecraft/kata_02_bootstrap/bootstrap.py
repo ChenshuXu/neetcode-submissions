@@ -101,6 +101,8 @@ class BootstrapService:
         payment_client: PaymentClient,
         order_client: OrderClient,
     ) -> None:
+        # Store the injected dependency clients so tests can supply deterministic
+        # fakes instead of making real network calls.
         self._user_client = user_client
         self._address_client = address_client
         self._payment_client = payment_client

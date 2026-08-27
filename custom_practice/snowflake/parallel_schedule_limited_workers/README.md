@@ -1,93 +1,97 @@
-# Snowflake Custom — Parallel Schedule with Limited Workers
+# Snowflake Custom — Parallel Courses III with Limited Workers
 
-This is an answer-free practice reconstruction for the reported Snowflake `Parallel Schedule / DAG`
-family. The recoverable interview evidence confirms a follow-up with a limited number of workers, but
-it does not recover the original function signature, task-duration model, scheduling objective,
-preemption rule, or tie behavior.
+This practice keeps the contract of LeetCode 2050, Parallel Courses III, and adds one resource
+constraint: at most `worker_count` courses may run at the same time.
 
-This exercise therefore fixes one deterministic contract that trains the reported mechanism. It is
-not a verbatim Snowflake prompt, and its output rules must not be presented as recovered interview
-facts.
+The recovered Snowflake evidence confirms only a Parallel Schedule / DAG base with a limited-worker
+follow-up. It does not recover the exact private prompt. This exercise uses LC2050 as the explicit
+base contract without adding schedule output, worker identities, tie-breaking rules, duplicate-edge
+behavior, or cycle behavior.
 
 ## Contract
 
 Implement:
 
 ```python
-def schedule_tasks(
-    durations: Sequence[int],
-    dependencies: Sequence[tuple[int, int]],
-    worker_count: int,
-) -> tuple[int, tuple[tuple[int, int, int, int], ...]]:
-    ...
+class Solution:
+    def minimumTime(
+        self,
+        n: int,
+        relations: List[List[int]],
+        time: List[int],
+        workerCount: int,
+    ) -> int:
+        ...
 ```
 
-There are `n = len(durations)` tasks with IDs `0` through `n - 1`.
+The LC2050 rules remain unchanged:
 
-- `durations[task_id]` is the positive integer execution time of that task.
-- Each dependency `(before, after)` means `before` must finish before `after` may start.
-- Duplicate dependency pairs may appear and represent only one dependency.
-- `worker_count` is at least `1`.
-- A worker executes at most one task at a time.
-- A task uses exactly one worker for its entire duration and cannot be paused or moved.
-- A task may start at the exact time its final prerequisite finishes.
-- The input collections must not be mutated.
+- There are `n` courses labeled from `1` through `n`.
+- `relations[i] = (previous, next_course)` means `previous` must finish before `next_course`
+  may start.
+- Every relation is unique, and the relations form a directed acyclic graph.
+- `time[i]` is the positive integer duration of course `i + 1`.
+- A course may start as soon as all of its prerequisites have finished.
+- A running course occupies one worker for its entire duration.
+- Courses cannot be paused or moved between workers.
+- At most `workerCount` courses may run simultaneously.
+- Return only the minimum possible time needed to finish every course.
+- Do not mutate the input collections.
 
-Whenever one or more workers are free, assign ready tasks immediately using these deterministic
-rules:
-
-1. Process every task completion at the current time before making new assignments.
-2. Choose ready tasks in ascending task-ID order.
-3. Choose free workers in ascending worker-ID order. Worker IDs are `0` through
-   `worker_count - 1`.
-
-Return:
+Practice constraints:
 
 ```text
-(completion_time, schedule)
+1 <= n <= 12
+1 <= workerCount <= n
+0 <= len(relations) <= n * (n - 1) / 2
+1 <= time[i] <= 10^4
 ```
 
-Each schedule entry is:
-
-```text
-(task_id, worker_id, start_time, end_time)
-```
-
-Entries must appear in assignment order: ascending `start_time`, then ascending `worker_id` for
-assignments made at the same time.
-
-Special cases:
-
-- If there are no tasks, return `(0, ())`.
-- If the dependencies contain a directed cycle, return `(-1, ())`.
-- `completion_time` is the final task's end time under the deterministic dispatch policy above. It
-  is not required to be the globally minimum possible completion time.
+The smaller `n` is intentional. Once finite workers are added, finding the exact minimum makespan is
+NP-hard in general, even though the unlimited-worker LC2050 problem has a linear-time DAG dynamic
+programming solution.
 
 ## Example
 
 ```python
-durations = [2, 2, 3, 1]
-dependencies = [(0, 2), (1, 2), (1, 3)]
-worker_count = 2
+n = 3
+relations = []
+time = [3, 2, 4]
+workerCount = 2
 ```
 
-Expected result:
+The optimal assignment runs durations `3` and `2` on one worker and duration `4` on the other, so:
 
 ```text
-(
-    5,
-    (
-        (0, 0, 0, 2),
-        (1, 1, 0, 2),
-        (2, 0, 2, 5),
-        (3, 1, 2, 3),
-    ),
-)
+Solution().minimumTime(3, [], [3, 2, 4], 2) -> 5
 ```
 
-## Run it
+## Exact approach
 
-Implement `schedule_tasks` in `solution.py`, then run:
+Start with the same adjacency list, indegree map, queue, and Kahn traversal as LC2050. The original
+`finishTime[course]` is no longer a complete state because ready courses can wait for a worker. Replace
+that one-dimensional DP with event-driven state dynamic programming.
+
+A memoized state contains:
+
+```text
+(completed_courses, running_courses_with_remaining_times)
+```
+
+At each task-completion event:
+
+1. Find every unscheduled course whose prerequisite set is contained in the completed-course set.
+2. If more courses are ready than there are free workers, enumerate every possible subset that can
+   start now. Workers are identical, so worker IDs do not belong in the state.
+3. Start the chosen courses and jump directly to the next completion event.
+4. Mark every course completing at that event and recursively compute the best remaining time.
+5. Store completed courses in a `frozenset` so the normalized state can be memoized.
+
+Enumerating every possible priority choice covers the dominant set of non-delay list schedules for
+identical workers and makespan minimization. The algorithm is exact but exponential, which is why the
+exercise uses `n <= 12`.
+
+## Run it
 
 ```bash
 python3 custom_practice/snowflake/parallel_schedule_limited_workers/run_tests.py
@@ -97,23 +101,17 @@ Useful options:
 
 ```bash
 python3 custom_practice/snowflake/parallel_schedule_limited_workers/run_tests.py --list
-python3 custom_practice/snowflake/parallel_schedule_limited_workers/run_tests.py --case cycle
+python3 custom_practice/snowflake/parallel_schedule_limited_workers/run_tests.py --case greedy
 ```
 
-The supplied starter intentionally raises `NotImplementedError` and contains no reference solution.
+## Interview clarification
 
-## Questions to clarify aloud before coding
+Before solving the follow-up, say explicitly:
 
-1. Are task durations all equal, or does each task have its own duration?
-2. Is the goal a deterministic feasible schedule or the globally shortest completion time?
-3. Can a running task be preempted or moved to another worker?
-4. What should happen when multiple ready tasks or workers are available simultaneously?
-5. Can dependency pairs repeat, and how should a cycle be reported?
+```text
+Should I still return the globally minimum completion time after adding worker_count?
+What is the new maximum n?
+```
 
-## Follow-ups to discuss after the base passes
-
-1. What changes if the interviewer requires the exact minimum completion time?
-2. What changes if every task has duration `1`?
-3. How would worker-specific task capabilities change the contract?
-4. How would task failure and retry affect dependency release?
-
+Keeping LC2050's original `n <= 5 * 10^4` while also requiring an exact finite-worker optimum would
+not be a realistic polynomial-time extension.

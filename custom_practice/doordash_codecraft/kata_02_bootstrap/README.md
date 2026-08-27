@@ -3,6 +3,11 @@
 This file is for a guided or solo-learning run. For a true cold run, open only
 COLD_PROMPT.md, bootstrap.py, and test_bootstrap.py.
 
+The starter covers the recurring aggregation core. `FOLLOW_UP_DRILLS.md`
+contains the answer-free extension deck for the remaining reported and
+plausible follow-ups. Open it only after the base attempt or let the interviewer
+release one card at a time.
+
 ## Candidate prompt
 
 Implement:
@@ -54,3 +59,20 @@ By minute 40, aim for:
 When the base suite is green, tell the interviewer:
 
     The base aggregation and failure matrix are green. I am ready for the follow-up.
+
+## Follow-up rotation
+
+Do not try to implement every production concern in one 60-minute run. Across
+fresh attempts, rotate through:
+
+1. remove duplicated error-handling code without hiding the hard/soft matrix;
+2. concurrent downstream fan-out plus a total deadline;
+3. transient-only retry with bounded exponential backoff;
+4. account-config or gift-card response transformation;
+5. configurable guest-mode policy;
+6. HTTP status and partial-response mapping.
+
+After each implementation follow-up, take the production discussion gauntlet
+in `FOLLOW_UP_DRILLS.md` verbally. That deck covers retry amplification, load
+balancing, horizontal scaling, circuit breaking, rate limiting, caching,
+deduplication, bounded async work, and observability.
