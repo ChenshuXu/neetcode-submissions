@@ -1,4 +1,4 @@
-"""Base: validate a cart against an inventory snapshot."""
+"""Follow-up 1: merge duplicate cart lines before base validation."""
 
 from dataclasses import dataclass
 from enum import Enum
@@ -22,7 +22,6 @@ class InventoryItem:
 class ValidationCode(Enum):
     EMPTY_CART = "empty_cart"
     INVALID_QUANTITY = "invalid_quantity"
-    DUPLICATE_ITEM = "duplicate_item"
     ITEM_UNAVAILABLE = "item_unavailable"
     BELOW_MINIMUM = "below_minimum"
     ABOVE_MAXIMUM = "above_maximum"
@@ -46,6 +45,16 @@ class CartValidationResult:
         return len(self.errors) == 0
 
 
+def merge_duplicate_lines(lines: list[CartLine]) -> list[CartLine]:
+    totals = {}
+    for line in lines:
+        if type(line.quantity) is not int or line.quantity <= 0:
+            raise ValueError("quantity must be a positive integer")
+        totals[line.item_id] = totals.get(line.item_id, 0) + line.quantity
+
+    return [CartLine(item_id, quantity) for item_id, quantity in totals.items()]
+
+
 class CartValidator:
     def validate_cart(
         self,
@@ -53,45 +62,29 @@ class CartValidator:
         inventory: dict[str, InventoryItem],
     ) -> CartValidationResult:
         if not lines:
-            error = CartValidationError(ValidationCode.EMPTY_CART)
-            return CartValidationResult((error,))
-
-        counts = {}
-        for line in lines:
-            counts[line.item_id] = counts.get(line.item_id, 0) + 1
+            return CartValidationResult(
+                (CartValidationError(ValidationCode.EMPTY_CART),)
+            )
 
         errors = []
-        seen = set()
-
         for line in lines:
-            item_id = line.item_id
-            if item_id in seen:
-                continue
-            seen.add(item_id)
-
-            if counts[item_id] > 1:
-                errors.append(
-                    CartValidationError(ValidationCode.DUPLICATE_ITEM, item_id)
-                )
-                continue
-
             quantity = line.quantity
             if type(quantity) is not int or quantity <= 0:
                 errors.append(
                     CartValidationError(
                         ValidationCode.INVALID_QUANTITY,
-                        item_id,
+                        line.item_id,
                         quantity,
                     )
                 )
                 continue
 
-            item = inventory.get(item_id)
+            item = inventory.get(line.item_id)
             if item is None:
                 errors.append(
                     CartValidationError(
                         ValidationCode.ITEM_UNAVAILABLE,
-                        item_id,
+                        line.item_id,
                         quantity,
                     )
                 )
@@ -101,7 +94,7 @@ class CartValidator:
                 errors.append(
                     CartValidationError(
                         ValidationCode.BELOW_MINIMUM,
-                        item_id,
+                        line.item_id,
                         quantity,
                         item.min_quantity,
                     )
@@ -110,7 +103,7 @@ class CartValidator:
                 errors.append(
                     CartValidationError(
                         ValidationCode.ABOVE_MAXIMUM,
-                        item_id,
+                        line.item_id,
                         quantity,
                         item.max_quantity,
                     )
@@ -119,7 +112,7 @@ class CartValidator:
                 errors.append(
                     CartValidationError(
                         ValidationCode.INSUFFICIENT_INVENTORY,
-                        item_id,
+                        line.item_id,
                         quantity,
                         item.available_quantity,
                     )
@@ -129,26 +122,17 @@ class CartValidator:
 
 
 def main() -> None:
+    lines = [CartLine("apple", 1), CartLine("soup", 2), CartLine("apple", 3)]
+    merged = merge_duplicate_lines(lines)
+    assert merged == [CartLine("apple", 4), CartLine("soup", 2)]
+
     inventory = {
         "apple": InventoryItem("apple", 8, 1, 5),
         "soup": InventoryItem("soup", 2, 2, 4),
     }
-    cart = [
-        CartLine("soup", 1),
-        CartLine("missing", 1),
-        CartLine("apple", 9),
-    ]
-
-    result = CartValidator().validate_cart(cart, inventory)
-    actual = [error.code for error in result.errors]
-    expected = [
-        ValidationCode.BELOW_MINIMUM,
-        ValidationCode.ITEM_UNAVAILABLE,
-        ValidationCode.ABOVE_MAXIMUM,
-        ValidationCode.INSUFFICIENT_INVENTORY,
-    ]
-    assert actual == expected
-    print(actual)
+    result = CartValidator().validate_cart(merged, inventory)
+    assert result.is_valid
+    print(merged)
 
 
 if __name__ == "__main__":

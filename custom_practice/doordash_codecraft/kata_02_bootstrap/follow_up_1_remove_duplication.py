@@ -1,4 +1,4 @@
-"""Base: read the Bootstrap dependencies one by one."""
+"""Card 1: move repeated optional-read handling into one helper."""
 
 from dataclasses import dataclass
 from typing import Optional
@@ -66,6 +66,24 @@ class BootstrapService:
         self.payment_client = payment_client
         self.order_client = order_client
 
+    def _get_optional(
+        self,
+        fetch,  # Bound client method to call.
+        key,  # Consumer ID passed to the method.
+        default,  # Value used when the read fails.
+        dependency,  # Dependency name used in the warning.
+        warnings,  # Warning list for the response.
+    ):
+        try:
+            return fetch(key)
+        except ClientNotFoundError:
+            return default
+        except ClientError:
+            warnings.append(
+                BootstrapWarning(dependency, "dependency_unavailable")
+            )
+            return default
+
     def get_bootstrap(
         self,
         user_id,  # Public user ID from the request.
@@ -83,36 +101,26 @@ class BootstrapService:
             raise ClientError("payment unavailable") from error
 
         warnings = []
-
-        try:
-            address = self.address_client.get_default_address(
-                user.consumer_id
-            )
-        except ClientNotFoundError:
-            address = None
-        except ClientError:
-            address = None
-            warnings.append(
-                BootstrapWarning("address", "dependency_unavailable")
-            )
-
-        try:
-            recent_orders = list(
-                self.order_client.list_recent_orders(user.consumer_id)
-            )
-        except ClientNotFoundError:
-            recent_orders = []
-        except ClientError:
-            recent_orders = []
-            warnings.append(
-                BootstrapWarning("orders", "dependency_unavailable")
-            )
+        address = self._get_optional(
+            self.address_client.get_default_address,
+            user.consumer_id,
+            None,
+            "address",
+            warnings,
+        )
+        recent_orders = self._get_optional(
+            self.order_client.list_recent_orders,
+            user.consumer_id,
+            [],
+            "orders",
+            warnings,
+        )
 
         return BootstrapResponse(
             user,
             payment,
             address,
-            recent_orders,
+            list(recent_orders),
             warnings,
         )
 
@@ -149,14 +157,14 @@ class MockClient:
 def main():
     service = BootstrapService(
         MockClient(USER),
-        MockClient(ADDRESS),
+        MockClient(error=ClientError("address down")),
         MockClient(PAYMENT),
         MockClient(ORDERS),
     )
 
     response = service.get_bootstrap("user-1")
-    assert response.payment == PAYMENT
-    assert response.address == ADDRESS
+    assert response.address is None
+    assert len(response.warnings) == 1
     print(response)
 
 

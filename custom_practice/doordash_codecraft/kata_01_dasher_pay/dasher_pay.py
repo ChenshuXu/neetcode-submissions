@@ -1,14 +1,20 @@
-"""Starter code for the DoorDash-style Dasher Pay kata.
+"""Base: calculate pay for completed deliveries.
 
-Implement PayoutService.get_payout. Keep the public contract stable unless you
-first agree on a change with the interviewer.
+Evolution role:
+- Establish the simple row-based payout calculation.
+- Filter completed deliveries and sum each duration independently.
+- Later Follow-ups keep this pay rule and add one new concern at a time.
+
+Timestamps are whole-minute integers and money is integer cents so the
+interview version needs no Decimal or rounding library.
 """
 
 from dataclasses import dataclass
-from datetime import datetime
-from decimal import Decimal
 from enum import Enum
-from typing import Optional, Protocol, Sequence
+from typing import Optional
+
+
+RATE_CENTS_PER_MINUTE = 30
 
 
 class DeliveryStatus(Enum):
@@ -17,61 +23,85 @@ class DeliveryStatus(Enum):
     ACTIVE = "active"
 
 
-@dataclass(frozen=True)
+@dataclass
 class Delivery:
     delivery_id: str
-    accepted_at: datetime
-    completed_at: Optional[datetime]
+    accepted_at: int
+    completed_at: Optional[int]
     status: DeliveryStatus
 
 
-@dataclass(frozen=True)
+@dataclass
 class PayoutResponse:
     dasher_id: str
-    amount: Decimal
+    amount_cents: int
     completed_delivery_count: int
 
 
-class DeliveryClient(Protocol):
-    def list_deliveries(self, dasher_id: str) -> Sequence[Delivery]:
-        """Return deliveries associated with one dasher."""
-
-
 class DeliveryClientError(RuntimeError):
-    """The upstream delivery service could not serve the request."""
-
-
-class InvalidRequestError(ValueError):
-    """The endpoint-like request is invalid."""
+    pass
 
 
 class InvalidDeliveryError(ValueError):
-    """A completed delivery contains an invalid time interval."""
+    pass
 
 
 class PayoutUnavailableError(RuntimeError):
-    """A stable service-level error for an unavailable payout calculation."""
+    pass
 
 
 class PayoutService:
-    def __init__(
-        self,
-        delivery_client: DeliveryClient,
-        rate_per_active_minute: Decimal = Decimal("0.30"),
-    ) -> None:
-        if rate_per_active_minute < Decimal("0"):
-            raise ValueError("rate_per_active_minute must be non-negative")
+    def __init__(self, delivery_client):
+        self.delivery_client = delivery_client
 
-        # Injected upstream port used to load this dasher's delivery records.
-        self._delivery_client = delivery_client
+    def get_payout(self, dasher_id):
+        if not isinstance(dasher_id, str) or not dasher_id.strip():
+            raise ValueError("dasher_id must not be blank")
 
-        # Exact Decimal dollars paid for one active delivery-minute.
-        self._rate_per_active_minute = rate_per_active_minute
+        try:
+            deliveries = self.delivery_client.list_deliveries(dasher_id)
+        except DeliveryClientError as error:
+            raise PayoutUnavailableError("delivery service unavailable") from error
 
-    def get_payout(self, dasher_id: str) -> PayoutResponse:
-        """Calculate payout for completed deliveries.
+        # Base algorithm: each completed delivery contributes its own duration.
+        # Overlapping deliveries are counted independently.
+        amount_cents = 0
+        completed_count = 0
 
-        Start with the smallest correct vertical slice. Add private helpers only
-        when they make a named rule easier to test or explain.
-        """
-        raise NotImplementedError("Implement PayoutService.get_payout")
+        for delivery in deliveries:
+            if delivery.status is not DeliveryStatus.COMPLETED:
+                continue
+            if (
+                delivery.completed_at is None
+                or delivery.completed_at <= delivery.accepted_at
+            ):
+                raise InvalidDeliveryError(delivery.delivery_id)
+
+            minutes = delivery.completed_at - delivery.accepted_at
+            amount_cents += minutes * RATE_CENTS_PER_MINUTE
+            completed_count += 1
+
+        return PayoutResponse(dasher_id, amount_cents, completed_count)
+
+
+class FakeDeliveryClient:
+    def __init__(self, deliveries):
+        self.deliveries = deliveries
+
+    def list_deliveries(self, dasher_id):
+        return self.deliveries
+
+
+def main():
+    deliveries = [
+        Delivery("d1", 0, 15, DeliveryStatus.COMPLETED),
+        Delivery("d2", 5, 15, DeliveryStatus.COMPLETED),
+        Delivery("d3", 0, None, DeliveryStatus.ACTIVE),
+    ]
+    result = PayoutService(FakeDeliveryClient(deliveries)).get_payout("dasher-1")
+    assert result == PayoutResponse("dasher-1", 750, 2)
+    print(result)
+
+
+if __name__ == "__main__":
+    main()

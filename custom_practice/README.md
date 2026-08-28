@@ -31,10 +31,12 @@ DoorDash Round 1 Code Craft (two 60-minute service/API katas):
 
 ```bash
 cd custom_practice/doordash_codecraft
-python3 new_attempt.py dasher-pay guided-dasher-01
+open kata_01_dasher_pay/README.md
 ```
 
-See `doordash_codecraft/README.md` for the guided, solo, and cold-run workflows.
+Each DoorDash kata keeps its own `README.md` beside the code.
+Dasher Pay also has a dependency-free GoLand module at
+`doordash_codecraft/kata_01_dasher_pay_go/`.
 
 Ordered n-ary tree deletion:
 
