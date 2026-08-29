@@ -56,9 +56,13 @@ class PayoutUnavailableError(RuntimeError):
 def merge_peak_windows(windows):
     # New in Follow-up 1: normalize overlapping windows into disjoint ranges.
     ordered = sorted(windows, key=lambda window: window.start)
+    return merge_sorted_peak_windows(ordered)
+
+
+def merge_sorted_peak_windows(windows):
     merged = []
 
-    for window in ordered:
+    for window in windows:
         if window.end <= window.start:
             raise ValueError("peak windows must have positive duration")
 
@@ -121,6 +125,69 @@ class PayoutService:
 
         return PayoutResponse(dasher_id, amount_cents, completed_count)
 
+    def get_payout_two(self, dasher_id, peak_windows=()):
+        """Use O(P + D log P) time when peak_windows are sorted by start."""
+        if not isinstance(dasher_id, str) or not dasher_id.strip():
+            raise ValueError("dasher_id must not be blank")
+
+        windows = merge_sorted_peak_windows(peak_windows)
+        starts = [window.start for window in windows]
+        peak_prefix = [0]
+        for window in windows:
+            peak_prefix.append(peak_prefix[-1] + window.end - window.start)
+
+        def find_last_window_starting_at_or_before(timestamp):
+            left = 0
+            right = len(starts) - 1
+            answer = -1
+
+            while left <= right:
+                middle = (left + right) // 2
+                if starts[middle] <= timestamp:
+                    answer = middle
+                    left = middle + 1
+                else:
+                    right = middle - 1
+
+            return answer
+
+        def peak_minutes_before(timestamp):
+            index = find_last_window_starting_at_or_before(timestamp)
+            if index < 0:
+                return 0
+
+            window = windows[index]
+            minutes_in_window = min(timestamp, window.end) - window.start
+            return peak_prefix[index] + minutes_in_window
+
+        try:
+            deliveries = self.delivery_client.list_deliveries(dasher_id)
+        except DeliveryClientError as error:
+            raise PayoutUnavailableError("delivery service unavailable") from error
+
+        amount_cents = 0
+        completed_count = 0
+
+        for delivery in deliveries:
+            if delivery.status is not DeliveryStatus.COMPLETED:
+                continue
+            if delivery.completed_at is None:
+                raise InvalidDeliveryError(delivery.delivery_id)
+
+            delivery_minutes = delivery.completed_at - delivery.accepted_at
+            if delivery_minutes <= 0:
+                raise InvalidDeliveryError("delivery must have positive duration")
+
+            peak_minutes = peak_minutes_before(
+                delivery.completed_at
+            ) - peak_minutes_before(delivery.accepted_at)
+            amount_cents += (
+                delivery_minutes + peak_minutes
+            ) * RATE_CENTS_PER_MINUTE
+            completed_count += 1
+
+        return PayoutResponse(dasher_id, amount_cents, completed_count)
+
 
 class FakeDeliveryClient:
     def __init__(self, deliveries):
@@ -136,11 +203,11 @@ def main():
         Delivery("d2", 5, 15, DeliveryStatus.COMPLETED),
     ]
     peak_windows = [PeakWindow(8, 12), PeakWindow(10, 14)]
-    result = PayoutService(FakeDeliveryClient(deliveries)).get_payout(
-        "dasher-1",
-        peak_windows,
-    )
+    service = PayoutService(FakeDeliveryClient(deliveries))
+    result = service.get_payout("dasher-1", peak_windows)
+    result_two = service.get_payout_two("dasher-1", peak_windows)
     assert result == PayoutResponse("dasher-1", 840, 2)
+    assert result_two == result
     print(result)
 
 

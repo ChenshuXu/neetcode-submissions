@@ -21,6 +21,8 @@ class EventAction(Enum):
 
 @dataclass(frozen=True)
 class OrderEvent:
+    """One immutable event; frozen allows exact duplicates to be removed."""
+
     order_id: str
     at: int
     action: EventAction
@@ -28,6 +30,8 @@ class OrderEvent:
 
 @dataclass
 class Activity:
+    """One validated pickup-to-terminal interval."""
+
     order_id: str
     start: int
     end: int
@@ -88,36 +92,52 @@ def interval_pay(start, end, peak_windows):
 
 
 def build_activities(events):
-    # New in Follow-up 2: rebuild delivery intervals from unordered events.
+    """Rebuild validated activity intervals from unordered order events."""
+
+    # For equal timestamps, process pickup first. The positive-duration check
+    # below still rejects a pickup and terminal occurring at the same time.
     priority = {
         EventAction.PICKED_UP: 0,
         EventAction.DELIVERED: 1,
         EventAction.CANCELLED: 1,
     }
+
+    # set removes exact duplicate events; sorting creates one timeline to scan.
     ordered = sorted(
         set(events),
         key=lambda event: (event.at, priority[event.action], event.order_id),
     )
+
+    # order_id -> pickup time for intervals waiting for a terminal event.
     open_orders = {}
+
+    # Orders that already reached DELIVERED or CANCELLED. Keeping them prevents
+    # a second terminal event or a new pickup from reopening a finished order.
     closed_orders = set()
+
+    # Valid pickup-to-terminal pairs. Only DELIVERED activities are paid later.
     activities = []
 
     for event in ordered:
         if event.action is EventAction.PICKED_UP:
+            # A pickup is valid only for an order that has never been opened.
             if event.order_id in open_orders or event.order_id in closed_orders:
                 raise InvalidTimelineError("duplicate pickup")
             open_orders[event.order_id] = event.at
             continue
 
+        # A terminal event must close exactly one currently open interval.
         start = open_orders.pop(event.order_id, None)
         if start is None or event.order_id in closed_orders:
             raise InvalidTimelineError("terminal event without pickup")
         if event.at <= start:
             raise InvalidTimelineError("activity must have positive duration")
 
+        # The order moves permanently from open to closed.
         closed_orders.add(event.order_id)
         activities.append(Activity(event.order_id, start, event.at, event.action))
 
+    # Every pickup must be paired before the timeline can be finalized.
     if open_orders:
         raise InvalidTimelineError("unfinished pickup")
 
