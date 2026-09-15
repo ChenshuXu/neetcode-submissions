@@ -129,12 +129,16 @@ from dataclasses import dataclass
 
 
 @dataclass
-class Rule:
+class BanRule:
     rule_id: str
     field: str | None = None
     value: str | None = None
 
     def matches(self, expense):
+        """返回 bool：费用是否在规则适用范围内；未设置 field 时返回 True。
+
+        True 表示匹配过滤条件，本方法本身不判断是否违规。
+        """
         # 判断这笔费用是否属于规则的适用范围，不代表它已经违规。
         # 没有指定过滤字段时，规则适用于所有费用。
         if self.field is None:
@@ -148,11 +152,10 @@ class Rule:
         return False
 
     def evaluate(self, expenses):
-        raise NotImplementedError("Each rule type implements its own evaluation")
+        """返回 list[str]：所有匹配禁用条件的 expense_id，包括零金额费用。
 
-
-class BanRule(Rule):
-    def evaluate(self, expenses):
+        按输入费用顺序返回；没有违规时返回 []。返回的是费用 ID，不是规则 ID。
+        """
         violations = []
         for expense in expenses:
             if self.matches(expense):
@@ -161,10 +164,26 @@ class BanRule(Rule):
 
 
 @dataclass
-class MaxAmountRule(Rule):
+class MaxAmountRule:
+    rule_id: str
+    field: str | None = None
+    value: str | None = None
     limit_usd: int = 0
 
+    def matches(self, expense):
+        """返回 bool：费用是否在规则适用范围内；未设置 field 时返回 True。
+
+        True 表示匹配过滤条件，不代表金额已经超限。
+        """
+        if self.field is None:
+            return True
+        return expense[self.field] == self.value
+
     def evaluate(self, expenses):
+        """返回 list[str]：匹配过滤条件且单笔金额严格大于上限的 expense_id。
+
+        按输入费用顺序返回；等于上限不违规，没有违规时返回 []。
+        """
         violations = []
         for expense in expenses:
             if self.matches(expense):
@@ -175,10 +194,27 @@ class MaxAmountRule(Rule):
 
 
 @dataclass
-class TripTotalRule(Rule):
+class TripTotalRule:
+    rule_id: str
+    field: str | None = None
+    value: str | None = None
     limit_usd: int = 0
 
+    def matches(self, expense):
+        """返回 bool：费用是否参与本规则的行程汇总；未设置 field 时返回 True。
+
+        True 表示匹配过滤条件，不代表所属行程已经超限。
+        """
+        if self.field is None:
+            return True
+        return expense[self.field] == self.value
+
     def evaluate(self, expenses):
+        """返回 list[str]：汇总金额严格超限的行程中，所有匹配费用的 expense_id。
+
+        只汇总匹配费用；超限后返回该行程的全部匹配费用，包括零金额费用，
+        不只是使总额越界的那一笔。按输入费用顺序返回，没有违规时返回 []。
+        """
         # Totals belong to this batch, so reusing the rule cannot leak state.
         totals = {}
         for expense in expenses:

@@ -7,6 +7,11 @@ contract, practice assumptions, and follow-ups. Read it before changing code or 
 
 | Area | Entry point |
 | --- | --- |
+| Lyft Stateful fetch_n | [Q004 practice](lyft/fetch_n/README.md) |
+| Rippling Task Scheduler | [Q058 practice](rippling/task_scheduler/README.md) |
+| Rippling File System | [Q003 practice](rippling/file_system/README.md) |
+| Rippling Delivery Payment | [Q048 practice](rippling/delivery_payment/README.md) |
+| Rippling Food Delivery OOD | [Q010 practice](rippling/food_delivery_ood/README.md) |
 | Rippling Expense Rule Engine | [Q001 practice](rippling/expense_rule_engine/README.md) |
 | Snowflake | [Company index](snowflake/README.md) |
 | Stripe | [Company index](stripe/README.md) and [OA map](stripe/oa_question_map/README.md) |
