@@ -3,6 +3,15 @@
 This repository contains synced submissions in `Data Structures & Algorithms/` and
 local interview exercises in `custom_practice/`. It has no repository-wide build.
 
+## Project memory
+
+For important sessions, use
+`/Users/Newton/Documents/Codex memory/projects/neetcode-submissions/MEMORY.md`.
+Read only sections and linked notes relevant to the current task. Keep durable project
+facts and tasks in that project directory; link to existing authoritative sources and
+registers instead of duplicating them. Follow
+`/Users/Newton/Documents/Codex memory/AGENTS.md` for memory write scope.
+
 ## Task scope
 
 - Follow the requested mode: hints, explanation, review, or implementation. Hints and
