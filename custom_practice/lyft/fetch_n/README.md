@@ -8,7 +8,7 @@ python3 custom_practice/lyft/fetch_n/solution.py
 
 ## 已有证据
 
-依据 [Q004 题单](</Users/Newton/Documents/job search/projects/context/Interview/lyft/lyft-fulfillment-core-services-interview-prep-2026-09-15.md>) 和 [证据账](</Users/Newton/Documents/job search/projects/context/Interview/lyft/lyft-fulfillment-core-services-interview-evidence-2026-09-15.md>)：
+依据 [Q004 题单](</Users/Newton/Documents/job search/projects/context/Interview/lyft/lyft-fulfillment-core-services-interview-prep-2026-09-17.md>) 和 [证据账](</Users/Newton/Documents/job search/projects/context/Interview/lyft/lyft-fulfillment-core-services-interview-evidence-2026-09-17.md>)：
 
 - **S-W3-005**：亲历电话题，已有 `fetch(page)` 返回 items 与 nextPage，另一 class 实现跨调用 `fetch_n`，保存未交付余量。
 - **S-W2-001 / S-W1-045**：同一 Chill 汇总及转载来源组，补充跨页、EOF、不稳定 upstream 的重试与 continuation state。重试不是已独立验证的现场追问。

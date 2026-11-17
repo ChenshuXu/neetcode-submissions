@@ -96,4 +96,4 @@ The supplied starter intentionally raises `NotImplementedError`.
 - Canonical local evidence inventory:
   `/Users/Newton/Documents/job search/projects/context/Interview/snowflake/snowflake-interview-question-bank-2016-2026.md`
 - Canonical local execution card:
-  `/Users/Newton/Documents/job search/projects/context/Interview/snowflake/snowflake-ic2-coding-preparation-plan.md`
+  `/Users/Newton/Documents/job search/projects/context/Interview/snowflake/snowflake-ic2-coding-preparation-plan-2026-08-24.md`
